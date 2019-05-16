@@ -26,8 +26,5 @@
   "license": "MIT",
   "devDependencies": {
     "vuepress": "^0.10.0"
-  },
-  "dependencies": {
-    "hoek": "^6.1.3"
   }
 }
