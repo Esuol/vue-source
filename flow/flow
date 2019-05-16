@@ -1,0 +1,14 @@
+Flow 是 facebook 出品的 JavaScript 静态类型检查工具。Vue.js 的源码利用了 Flow 做了静态类型检查，所以了解 Flow 有助于我们阅读源码。
+
+Flow 在Vue.js主目录结构.flowConfig文件  --   这其中的 [libs] 部分用来描述包含指定库定义的目录，默认是名为 flow-typed 的目录。
+
+这里 [libs] 配置的是 flow，表示指定的库定义都在 flow 文件夹内。我们打开这个目录，会发现文件如下：
+
+flow
+├── compiler.js        # 编译相关
+├── component.js       # 组件数据结构
+├── global-api.js      # Global API 结构
+├── modules.js         # 第三方库定义
+├── options.js         # 选项相关
+├── ssr.js             # 服务端渲染相关
+├── vnode.js           # 虚拟 node 相关
