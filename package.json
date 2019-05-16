@@ -2,10 +2,29 @@
   "name": "vuesourcecodeconpile",
   "version": "1.0.0",
   "description": "vue 源码解析",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+  "keywords": [
+    "vue",
+    "analysis"
+  ],
+  "directories": {
+    "doc": "doc"
   },
-  "author": "",
-  "license": "ISC"
+  "scripts": {
+    "dev": "vuepress dev docs",
+    "build": "vuepress build docs",
+    "deploy": "sh build.sh"
+  },
+  "author": "berlin",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/berlinen/About-Vue-Source-Code"
+  },
+  "bugs": {
+    "url": "https://github.com/berlinen/About-Vue-Source-Code/issues"
+  },
+  "homepage": "https://github.com/berlinen/About-Vue-Source-Code",
+  "license": "MIT",
+  "devDependencies": {
+    "vuepress": "^0.10.0"
+  }
 }
