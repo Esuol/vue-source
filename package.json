@@ -1,10 +1,13 @@
 {
-  "name": "vuesourcecodeconpile",
+  "name": "vue-source-code-analysis-study",
   "version": "1.0.0",
   "description": "vue 源码解析",
   "keywords": [
     "vue",
-    "analysis"
+    "source code",
+    "study",
+    "share",
+    "vuepress"
   ],
   "directories": {
     "doc": "doc"
@@ -17,12 +20,12 @@
   "author": "berlin",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/berlinen/About-Vue-Source-Code"
+    "url": "git+https://github.com/berlinen/vue-source"
   },
   "bugs": {
-    "url": "https://github.com/berlinen/About-Vue-Source-Code/issues"
+    "url": "https://github.com/berlinen/vue-source/issues"
   },
-  "homepage": "https://github.com/berlinen/About-Vue-Source-Code",
+  "homepage": "https://berlinen.github.io/vue-source/",
   "license": "MIT",
   "devDependencies": {
     "vuepress": "^0.10.0"
