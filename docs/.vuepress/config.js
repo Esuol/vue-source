@@ -16,6 +16,7 @@ module.exports = {
   ],
   serviceWorker: false,
   themeConfig: {
+      repo: 'berlinen/About-Vue-Source-Code',
       editLinks: true,
       docsDir: 'docs',
       editLinkText: '在 GitHub 上编辑此页',
@@ -37,8 +38,7 @@ module.exports = {
               'prepare/build',
               'prepare/entrance'
           ]
-      },
-
-      ]
+       }
+    ]
   }
 }
