@@ -43,7 +43,8 @@ module.exports = {
          collapsable: false,
          children: [
           ['dataDriven/', 'Introduction'],
-          'dataDriven/newVue'
+          'dataDriven/newVue',
+          'dataDriven/vueMount'
          ]
        }
     ]
