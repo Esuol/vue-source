@@ -42,7 +42,8 @@ module.exports = {
          title: '数据驱动',
          collapsable: false,
          children: [
-          ['dataDriven/', 'Introduction']
+          ['dataDriven/', 'Introduction'],
+          'dataDriven/newVue'
          ]
        }
     ]
