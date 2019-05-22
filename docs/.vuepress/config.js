@@ -35,9 +35,15 @@ module.exports = {
               ['prepare/', 'Introduction'],
               'prepare/flow',
               'prepare/directory',
-              'prepare/build',
               'prepare/entrance'
           ]
+       },
+       {
+         title: '数据驱动',
+         collapsable: false,
+         children: [
+          ['dataDriven/', 'Introduction']
+         ]
        }
     ]
   }
