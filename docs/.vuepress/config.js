@@ -45,7 +45,8 @@ module.exports = {
           ['dataDriven/', 'Introduction'],
           'dataDriven/newVue',
           'dataDriven/vueMount',
-          'dataDriven/render'
+          'dataDriven/render',
+          'dataDriven/virtualDom'
          ]
        }
     ]
