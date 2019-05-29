@@ -44,7 +44,8 @@ module.exports = {
          children: [
           ['dataDriven/', 'Introduction'],
           'dataDriven/newVue',
-          'dataDriven/vueMount'
+          'dataDriven/vueMount',
+          'dataDriven/render'
          ]
        }
     ]
