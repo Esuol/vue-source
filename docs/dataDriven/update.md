@@ -340,3 +340,97 @@ function createElm (
   }
 }
 ```
+
+createElm 的作用是通过虚拟节点创建真实的 DOM 并插入到它的父节点中。 我们来看一下它的一些关键逻辑，createComponent 方法目的是尝试创建子组件，这个逻辑在之后组件的章节会详细介绍，在当前这个 case 下它的返回值为 false；接下来判断 vnode 是否包含 tag，如果包含，先简单对 tag 的合法性在非生产环境下做校验，看是否是一个合法标签；然后再去调用平台 DOM 的操作去创建一个占位符元素。
+
+```js
+vnode.elm = vnode.ns
+  ? nodeOps.createElementNS(vnode.ns, tag)
+  : nodeOps.createElement(tag, vnode)
+```
+
+接下来调用 createChildren 方法去创建子元素：
+
+```js
+createChildren(vnode, children, insertedVnodeQueue)
+
+function createChildren (vnode, children, insertedVnodeQueue) {
+  if (Array.isArray(children)) {
+    if (process.env.NODE_ENV !== 'production') {
+      checkDuplicateKeys(children)
+    }
+    for (let i = 0; i < children.length; ++i) {
+      createElm(children[i], insertedVnodeQueue, vnode.elm, null, true, children, i)
+    }
+  } else if (isPrimitive(vnode.text)) {
+    nodeOps.appendChild(vnode.elm, nodeOps.createTextNode(String(vnode.text)))
+  }
+}
+```
+
+createChildren 的逻辑很简单，实际上是遍历子虚拟节点，递归调用 createElm，这是一种常用的深度优先的遍历算法，这里要注意的一点是在遍历过程中会把 vnode.elm 作为父容器的 DOM 节点占位符传入。
+
+接着再调用 invokeCreateHooks 方法执行所有的 create 的钩子并把 vnode push 到 insertedVnodeQueue 中。
+
+```js
+ if (isDef(data)) {
+  invokeCreateHooks(vnode, insertedVnodeQueue)
+}
+
+function invokeCreateHooks (vnode, insertedVnodeQueue) {
+  for (let i = 0; i < cbs.create.length; ++i) {
+    cbs.create[i](emptyNode, vnode)
+  }
+  i = vnode.data.hook // Reuse variable
+  if (isDef(i)) {
+    if (isDef(i.create)) i.create(emptyNode, vnode)
+    if (isDef(i.insert)) insertedVnodeQueue.push(vnode)
+  }
+}
+
+```
+
+最后调用 insert 方法把 DOM 插入到父节点中，因为是递归调用，子元素会优先调用 insert，所以整个 vnode 树节点的插入顺序是先子后父。来看一下 insert 方法，它的定义在 src/core/vdom/patch.js 上。
+
+```js
+insert(parentElm, vnode.elm, refElm)
+
+function insert (parent, elm, ref) {
+  if (isDef(parent)) {
+    if (isDef(ref)) {
+      if (ref.parentNode === parent) {
+        nodeOps.insertBefore(parent, elm, ref)
+      }
+    } else {
+      nodeOps.appendChild(parent, elm)
+    }
+  }
+}
+```
+
+insert 逻辑很简单，调用一些 nodeOps 把子节点插入到父节点中，这些辅助方法定义在 src/platforms/web/runtime/node-ops.js 中：
+
+```js
+export function insertBefore (parentNode: Node, newNode: Node, referenceNode: Node) {
+  parentNode.insertBefore(newNode, referenceNode)
+}
+
+export function appendChild (node: Node, child: Node) {
+  node.appendChild(child)
+}
+```
+
+其实就是调用原生 DOM 的 API 进行 DOM 操作，看到这里，很多同学恍然大悟，原来 Vue 是这样动态创建的 DOM。
+
+在 createElm 过程中，如果 vnode 节点不包含 tag，则它有可能是一个注释或者纯文本节点，可以直接插入到父元素中。在我们这个例子中，最内层就是一个文本 vnode，它的 text 值取的就是之前的 this.message 的值 Hello Vue!。
+
+再回到 patch 方法，首次渲染我们调用了 createElm 方法，这里传入的 parentElm 是 oldVnode.elm 的父元素，在我们的例子是 id 为 #app div 的父元素，也就是 Body；实际上整个过程就是递归创建了一个完整的 DOM 树并插入到 Body 上。
+
+最后，我们根据之前递归 createElm 生成的 vnode 插入顺序队列，执行相关的 insert 钩子函数，这部分内容我们之后会详细介绍。
+
+## 总结
+
+那么至此我们从主线上把模板和数据如何渲染成最终的 DOM 的过程分析完毕了，我们可以通过下图更直观地看到从初始化 Vue 到最终渲染的整个过程。
+
+
+我们这里只是分析了最简单和最基础的场景，在实际项目中，我们是把页面拆成很多组件的，Vue 另一个核心思想就是组件化。那么下一章我们就来分析 Vue 的组件化过程。
