@@ -49,6 +49,13 @@ module.exports = {
           'dataDriven/virtualDom',
           'dataDriven/update'
          ]
+       },
+       {
+        title: '组件化',
+        collapsable: false,
+        children: [
+         ['component/', 'Introduction']
+        ]
        }
     ]
   }
