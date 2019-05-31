@@ -155,3 +155,104 @@ if (isObject(Ctor)) {
 
 我们在编写一个组件的时候，通常都是创建一个普通对象，还是以我们的 App.vue 为例，代码如下：
 
+```js
+import HelloWorld from './components/HelloWorld'
+
+export default {
+  name: 'app',
+  components: {
+    HelloWorld
+  }
+}
+```
+
+这里 export 的是一个对象，所以 createComponent 里的代码逻辑会执行到 baseCtor.extend(Ctor)，在这里 baseCtor 实际上就是 Vue，这个的定义是在最开始初始化 Vue 的阶段，在 src/core/global-api/index.js 中的 initGlobalAPI 函数有这么一段逻辑：
+
+```js
+// this is used to identify the "base" constructor to extend all plain-object
+// components with in Weex's multi-instance scenarios.
+Vue.options._base = Vue
+```
+
+细心的同学会发现，这里定义的是 Vue.options，而我们的 createComponent 取的是 context.$options，实际上在 src/core/instance/init.js 里 Vue 原型上的 _init 函数中有这么一段逻辑：
+
+```js
+vm.$options = mergeOptions(
+  resolveConstructorOptions(vm.constructor),
+  options || {},
+  vm
+)
+```
+
+这样就把 Vue 上的一些 option 扩展到了 vm.$options 上，所以我们也就能通过 vm.$options._base 拿到 Vue 这个构造函数了。mergeOptions 的实现我们会在后续章节中具体分析，现在只需要理解它的功能是把 Vue 构造函数的 options 和用户传入的 options 做一层合并，到 vm.$options 上。
+
+在了解了 baseCtor 指向了 Vue 之后，我们来看一下 Vue.extend 函数的定义，在 src/core/global-api/extend.js 中。
+
+```js
+/**
+ * Class inheritance
+ */
+Vue.extend = function (extendOptions: Object): Function {
+  extendOptions = extendOptions || {}
+  const Super = this
+  const SuperId = Super.cid
+  const cachedCtors = extendOptions._Ctor || (extendOptions._Ctor = {})
+  if (cachedCtors[SuperId]) {
+    return cachedCtors[SuperId]
+  }
+
+  const name = extendOptions.name || Super.options.name
+  if (process.env.NODE_ENV !== 'production' && name) {
+    validateComponentName(name)
+  }
+
+  const Sub = function VueComponent (options) {
+    this._init(options)
+  }
+  Sub.prototype = Object.create(Super.prototype)
+  Sub.prototype.constructor = Sub
+  Sub.cid = cid++
+  Sub.options = mergeOptions(
+    Super.options,
+    extendOptions
+  )
+  Sub['super'] = Super
+
+  // For props and computed properties, we define the proxy getters on
+  // the Vue instances at extension time, on the extended prototype. This
+  // avoids Object.defineProperty calls for each instance created.
+  if (Sub.options.props) {
+    initProps(Sub)
+  }
+  if (Sub.options.computed) {
+    initComputed(Sub)
+  }
+
+  // allow further extension/mixin/plugin usage
+  Sub.extend = Super.extend
+  Sub.mixin = Super.mixin
+  Sub.use = Super.use
+
+  // create asset registers, so extended classes
+  // can have their private assets too.
+  ASSET_TYPES.forEach(function (type) {
+    Sub[type] = Super[type]
+  })
+  // enable recursive self-lookup
+  if (name) {
+    Sub.options.components[name] = Sub
+  }
+
+  // keep a reference to the super options at extension time.
+  // later at instantiation we can check if Super's options have
+  // been updated.
+  Sub.superOptions = Super.options
+  Sub.extendOptions = extendOptions
+  Sub.sealedOptions = extend({}, Sub.options)
+
+  // cache constructor
+  cachedCtors[SuperId] = Sub
+  return Sub
+}
+```
+
