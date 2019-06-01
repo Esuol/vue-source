@@ -85,3 +85,53 @@ init (vnode: VNodeWithData, hydrating: boolean): ?boolean {
   }
 },
 ```
+
+init 钩子函数执行也很简单，我们先不考虑 keepAlive 的情况，它是通过 createComponentInstanceForVnode 创建一个 Vue 的实例，然后调用 $mount 方法挂载子组件， 先来看一下 createComponentInstanceForVnode 的实现：
+
+```js
+export function createComponentInstanceForVnode (
+  vnode: any, // we know it's MountedComponentVNode but flow doesn't
+  parent: any, // activeInstance in lifecycle state
+): Component {
+  const options: InternalComponentOptions = {
+    _isComponent: true,
+    _parentVnode: vnode,
+    parent
+  }
+  // check inline-template render functions
+  const inlineTemplate = vnode.data.inlineTemplate
+  if (isDef(inlineTemplate)) {
+    options.render = inlineTemplate.render
+    options.staticRenderFns = inlineTemplate.staticRenderFns
+  }
+  return new vnode.componentOptions.Ctor(options)
+}
+
+```
+
+createComponentInstanceForVnode 函数构造的一个内部组件的参数，然后执行 new vnode.componentOptions.Ctor(options)。这里的 vnode.componentOptions.Ctor 对应的就是子组件的构造函数，我们上一节分析了它实际上是继承于 Vue 的一个构造器 Sub，相当于 new Sub(options) 这里有几个关键参数要注意几个点，_isComponent 为 true 表示它是一个组件，parent 表示当前激活的组件实例（注意，这里比较有意思的是如何拿到组件实例，后面会介绍。
+
+所以子组件的实例化实际上就是在这个时机执行的，并且它会执行实例的 _init 方法，这个过程有一些和之前不同的地方需要挑出来说，代码在 src/core/instance/init.js 中：
+
+```js
+Vue.prototype._init = function (options?: Object) {
+  const vm: Component = this
+  // merge options
+  if (options && options._isComponent) {
+    // optimize internal component instantiation
+    // since dynamic options merging is pretty slow, and none of the
+    // internal component options needs special treatment.
+    initInternalComponent(vm, options)
+  } else {
+    vm.$options = mergeOptions(
+      resolveConstructorOptions(vm.constructor),
+      options || {},
+      vm
+    )
+  }
+  // ...
+  if (vm.$options.el) {
+    vm.$mount(vm.$options.el)
+  }
+}
+```
