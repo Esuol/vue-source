@@ -49,3 +49,17 @@ function createComponent (vnode, insertedVnodeQueue, parentElm, refElm) {
   }
 }
 ```
+
+createComponent 函数中，首先对 vnode.data 做了一些判断：
+
+```js
+let i = vnode.data
+if (isDef(i)) {
+  // ...
+  if (isDef(i = i.hook) && isDef(i = i.init)) {
+    i(vnode, false /* hydrating */)
+    // ...
+  }
+  // ..
+}
+```
