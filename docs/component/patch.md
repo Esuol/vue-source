@@ -63,3 +63,25 @@ if (isDef(i)) {
   // ..
 }
 ```
+
+如果 vnode 是一个组件 VNode，那么条件会满足，并且得到 i 就是 init 钩子函数，回顾上节我们在创建组件 VNode 的时候合并钩子函数中就包含 init 钩子函数，定义在 src/core/vdom/create-component.js 中：
+
+```js
+init (vnode: VNodeWithData, hydrating: boolean): ?boolean {
+  if (
+    vnode.componentInstance &&
+    !vnode.componentInstance._isDestroyed &&
+    vnode.data.keepAlive
+  ) {
+    // kept-alive components, treat as a patch
+    const mountedNode: any = vnode // work around flow
+    componentVNodeHooks.prepatch(mountedNode, mountedNode)
+  } else {
+    const child = vnode.componentInstance = createComponentInstanceForVnode(
+      vnode,
+      activeInstance
+    )
+    child.$mount(hydrating ? vnode.elm : undefined, hydrating)
+  }
+},
+```
