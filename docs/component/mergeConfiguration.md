@@ -306,3 +306,59 @@ export function initInternalComponent (vm: Component, options: InternalComponent
   }
 }
 ```
+
+initInternalComponent 方法首先执行 const opts = vm.$options = Object.create(vm.constructor.options)，这里的 vm.constructor 就是子组件的构造函数 Sub，相当于 vm.$options = Object.create(Sub.options)。
+
+接着又把实例化子组件传入的子组件父 VNode 实例 parentVnode、子组件的父 Vue 实例 parent 保存到 vm.$options 中，另外还保留了 parentVnode 配置中的如 propsData 等其它的属性。
+
+这么看来，initInternalComponent 只是做了简单一层对象赋值，并不涉及到递归、合并策略等复杂逻辑。
+
+因此，在我们当前这个 case 下，执行完如下合并后：
+
+```js
+initInternalComponent(vm, options)
+```
+vm.$options 的值差不多是如下这样：
+
+```js
+vm.$options = {
+  parent: Vue /*父Vue实例*/,
+  propsData: undefined,
+  _componentTag: undefined,
+  _parentVnode: VNode /*父VNode实例*/,
+  _renderChildren:undefined,
+  __proto__: {
+    components: { },
+    directives: { },
+    filters: { },
+    _base: function Vue(options) {
+        //...
+    },
+    _Ctor: {},
+    created: [
+      function created() {
+        console.log('parent created')
+      }, function created() {
+        console.log('child created')
+      }
+    ],
+    mounted: [
+      function mounted() {
+        console.log('child mounted')
+      }
+    ],
+    data() {
+       return {
+         msg: 'Hello Vue'
+       }
+    },
+    template: '<div>{{msg}}</div>'
+  }
+}
+```
+
+## 总结
+那么至此，Vue 初始化阶段对于 options 的合并过程就介绍完了，我们需要知道对于 options 的合并有 2 种方式，子组件初始化过程通过 initInternalComponent 方式要比外部初始化 Vue 通过 mergeOptions 的过程要快，合并完的结果保留在 vm.$options 中。
+
+纵观一些库、框架的设计几乎都是类似的，自身定义了一些默认配置，同时又可以在初始化阶段传入一些定义配置，然后去 merge 默认配置，来达到定制化不同需求的目的。只不过在 Vue 的场景下，会对 merge 的过程做一些精细化控制，虽然我们在开发自己的 JSSDK 的时候并没有 Vue 这么复杂，但这个设计思想是值得我们借鉴的。
+
