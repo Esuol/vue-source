@@ -206,3 +206,33 @@ export const LIFECYCLE_HOOKS = [
 通过执行 mergeField 函数，把合并后的结果保存到 options 对象中，最终返回它。
 
 因此，在我们当前这个 case 下，执行完如下合并后：
+
+```js
+vm.$options = mergeOptions(
+  resolveConstructorOptions(vm.constructor),
+  options || {},
+  vm
+)
+```
+
+vm.$options 的值差不多是如下这样：
+
+```js
+vm.$options = {
+  components: { },
+  created: [
+    function created() {
+      console.log('parent created')
+    }
+  ],
+  directives: { },
+  filters: { },
+  _base: function Vue(options) {
+    // ...
+  },
+  el: "#app",
+  render: function (h) {
+    //...
+  }
+}
+```
