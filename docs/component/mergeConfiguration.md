@@ -236,3 +236,50 @@ vm.$options = {
   }
 }
 ```
+
+## 组件场景
+
+由于组件的构造函数是通过 Vue.extend 继承自 Vue 的，先回顾一下这个过程，代码定义在 src/core/global-api/extend.js 中。
+
+```js
+/**
+ * Class inheritance
+ */
+Vue.extend = function (extendOptions: Object): Function {
+  // ...
+  Sub.options = mergeOptions(
+    Super.options,
+    extendOptions
+  )
+
+  // ...
+  // keep a reference to the super options at extension time.
+  // later at instantiation we can check if Super's options have
+  // been updated.
+  Sub.superOptions = Super.options
+  Sub.extendOptions = extendOptions
+  Sub.sealedOptions = extend({}, Sub.options)
+
+  // ...
+  return Sub
+}
+```
+
+我们只保留关键逻辑，这里的 extendOptions 对应的就是前面定义的组件对象，它会和 Vue.options 合并到 Sub.opitons 中。
+
+接下来我们再回忆一下子组件的初始化过程，代码定义在 src/core/vdom/create-component.js 中：
+
+```js
+export function createComponentInstanceForVnode (
+  vnode: any, // we know it's MountedComponentVNode but flow doesn't
+  parent: any, // activeInstance in lifecycle state
+): Component {
+  const options: InternalComponentOptions = {
+    _isComponent: true,
+    _parentVnode: vnode,
+    parent
+  }
+  // ...
+  return new vnode.componentOptions.Ctor(options)
+}
+```
