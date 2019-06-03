@@ -180,3 +180,29 @@ LIFECYCLE_HOOKS.forEach(hook => {
 })
 
 ```
+
+这其中的 LIFECYCLE_HOOKS 的定义在 src/shared/constants.js 中：
+
+```js
+export const LIFECYCLE_HOOKS = [
+  'beforeCreate',
+  'created',
+  'beforeMount',
+  'mounted',
+  'beforeUpdate',
+  'updated',
+  'beforeDestroy',
+  'destroyed',
+  'activated',
+  'deactivated',
+  'errorCaptured'
+]
+```
+
+这里定义了 Vue.js 所有的钩子函数名称，所以对于钩子函数，他们的合并策略都是 mergeHook 函数。这个函数的实现也非常有意思，用了一个多层 3 元运算符，逻辑就是如果不存在 childVal ，就返回 parentVal；否则再判断是否存在 parentVal，如果存在就把 childVal 添加到 parentVal 后返回新数组；否则返回 childVal 的数组。所以回到 mergeOptions 函数，一旦 parent 和 child 都定义了相同的钩子函数，那么它们会把 2 个钩子函数合并成一个数组。
+
+关于其它属性的合并策略的定义都可以在 src/core/util/options.js 文件中看到，这里不一一介绍了，感兴趣的同学可以自己看。
+
+通过执行 mergeField 函数，把合并后的结果保存到 options 对象中，最终返回它。
+
+因此，在我们当前这个 case 下，执行完如下合并后：
