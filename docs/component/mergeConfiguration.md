@@ -283,3 +283,26 @@ export function createComponentInstanceForVnode (
   return new vnode.componentOptions.Ctor(options)
 }
 ```
+
+这里的 vnode.componentOptions.Ctor 就是指向 Vue.extend 的返回值 Sub， 所以 执行 new vnode.componentOptions.Ctor(options) 接着执行 this._init(options)，因为 options._isComponent 为 true，那么合并 options 的过程走到了 initInternalComponent(vm, options) 逻辑。先来看一下它的代码实现，在 src/core/instance/init.j
+
+```js
+export function initInternalComponent (vm: Component, options: InternalComponentOptions) {
+  const opts = vm.$options = Object.create(vm.constructor.options)
+  // doing this because it's faster than dynamic enumeration.
+  const parentVnode = options._parentVnode
+  opts.parent = options.parent
+  opts._parentVnode = parentVnode
+
+  const vnodeComponentOptions = parentVnode.componentOptions
+  opts.propsData = vnodeComponentOptions.propsData
+  opts._parentListeners = vnodeComponentOptions.listeners
+  opts._renderChildren = vnodeComponentOptions.children
+  opts._componentTag = vnodeComponentOptions.tag
+
+  if (options.render) {
+    opts.render = options.render
+    opts.staticRenderFns = options.staticRenderFns
+  }
+}
+```
