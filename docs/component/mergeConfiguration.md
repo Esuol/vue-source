@@ -94,3 +94,65 @@ export const ASSET_TYPES = [
   'filter'
 ]
 ```
+
+所以上面遍历 ASSET_TYPES 后的代码相当于：
+
+```js
+Vue.options.components = {}
+Vue.options.directives = {}
+Vue.options.filters = {}
+```
+
+接着执行了 Vue.options._base = Vue，它的作用在我们上节实例化子组件的时候介绍了。
+
+最后通过 extend(Vue.options.components, builtInComponents) 把一些内置组件扩展到 Vue.options.components 上，Vue 的内置组件目前有 keep-alive、transition 和 transition-group 组件，这也就是为什么我们在其它组件中使用 keep-alive 组件不需要注册的原因，这块儿后续我们介绍 keep-alive 组件的时候会详细讲。
+
+那么回到 mergeOptions 这个函数，它的定义在 src/core/util/options.js 中：
+
+```js
+/**
+ * Merge two option objects into a new one.
+ * Core utility used in both instantiation and inheritance.
+ */
+export function mergeOptions (
+  parent: Object,
+  child: Object,
+  vm?: Component
+): Object {
+  if (process.env.NODE_ENV !== 'production') {
+    checkComponents(child)
+  }
+
+  if (typeof child === 'function') {
+    child = child.options
+  }
+
+  normalizeProps(child, vm)
+  normalizeInject(child, vm)
+  normalizeDirectives(child)
+  const extendsFrom = child.extends
+  if (extendsFrom) {
+    parent = mergeOptions(parent, extendsFrom, vm)
+  }
+  if (child.mixins) {
+    for (let i = 0, l = child.mixins.length; i < l; i++) {
+      parent = mergeOptions(parent, child.mixins[i], vm)
+    }
+  }
+  const options = {}
+  let key
+  for (key in parent) {
+    mergeField(key)
+  }
+  for (key in child) {
+    if (!hasOwn(parent, key)) {
+      mergeField(key)
+    }
+  }
+  function mergeField (key) {
+    const strat = strats[key] || defaultStrat
+    options[key] = strat(parent[key], child[key], vm, key)
+  }
+  return options
+}
+```
