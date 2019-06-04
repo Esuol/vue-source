@@ -210,3 +210,52 @@ flushSchedulerQueue 函数我们之后会详细介绍，可以先大概了解一
 
 我们之前提过，在组件 mount 的过程中，会实例化一个渲染的 Watcher 去监听 vm 上的数据变化重新渲染，这段逻辑发生在 mountComponent 函数执行的时候：
 
+```js
+export function mountComponent (
+  vm: Component,
+  el: ?Element,
+  hydrating?: boolean
+): Component {
+  // ...
+  // 这里是简写
+  let updateComponent = () => {
+      vm._update(vm._render(), hydrating)
+  }
+  new Watcher(vm, updateComponent, noop, {
+    before () {
+      if (vm._isMounted) {
+        callHook(vm, 'beforeUpdate')
+      }
+    }
+  }, true /* isRenderWatcher */)
+  // ...
+}
+```
+那么在实例化 Watcher 的过程中，在它的构造函数里会判断 isRenderWatcher，接着把当前 watcher 的实例赋值给 vm._watcher，定义在 src/core/observer/watcher.js 中：
+
+```js
+export default class Watcher {
+  // ...
+  constructor (
+    vm: Component,
+    expOrFn: string | Function,
+    cb: Function,
+    options?: ?Object,
+    isRenderWatcher?: boolean
+  ) {
+    this.vm = vm
+    if (isRenderWatcher) {
+      vm._watcher = this
+    }
+    vm._watchers.push(this)
+    // ...
+  }
+}
+```
+
+同时，还把当前 wathcer 实例 push 到 vm._watchers 中，vm._watcher 是专门用来监听 vm 上数据变化然后重新渲染的，所以它是一个渲染相关的 watcher，因此在 callUpdatedHooks 函数中，只有 vm._watcher 的回调执行完毕后，才会执行 updated 钩子函数。
+
+## beforeDestroy & destroyed
+
+顾名思义，beforeDestroy 和 destroyed 钩子函数的执行时机在组件销毁的阶段，组件的销毁过程之后会详细介绍，最终会调用 $destroy 方法，它的定义在 src/core/instance/lifecycle.js 中：
+
