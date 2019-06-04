@@ -312,4 +312,6 @@ beforeDestroy 钩子函数的执行时机是在 $destroy 函数执行最开始�
 
 activated 和 deactivated 钩子函数是专门为 keep-alive 组件定制的钩子，我们会在介绍 keep-alive 组件的时候详细介绍，这里先留个悬念。
 
-#
+## 总结
+
+这一节主要介绍了 Vue 生命周期中各个钩子函数的执行时机以及顺序，通过分析，我们知道了如在 created 钩子函数中可以访问到数据，在 mounted 钩子函数中可以访问到 DOM，在 destroy 钩子函数中可以做一些定时器销毁工作，了解它们有利于我们在合适的生命周期去做不同的事情。
