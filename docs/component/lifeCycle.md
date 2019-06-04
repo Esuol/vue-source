@@ -187,3 +187,26 @@ export function mountComponent (
 
 update 的执行时机是在flushSchedulerQueue 函数调用的时候，它的定义在 src/core/observer/scheduler.js 中：
 
+```js
+function flushSchedulerQueue () {
+  // ...
+  // 获取到 updatedQueue
+  callUpdatedHooks(updatedQueue)
+}
+
+function callUpdatedHooks (queue) {
+  let i = queue.length
+  while (i--) {
+    const watcher = queue[i]
+    const vm = watcher.vm
+    if (vm._watcher === watcher && vm._isMounted) {
+      callHook(vm, 'updated')
+    }
+  }
+}
+```
+
+flushSchedulerQueue 函数我们之后会详细介绍，可以先大概了解一下，updatedQueue 是更新了的 wathcer 数组，那么在 callUpdatedHooks 函数中，它对这些数组做遍历，只有满足当前 watcher 为 vm._watcher 以及组件已经 mounted 这两个条件，才会执行 updated 钩子函数。
+
+我们之前提过，在组件 mount 的过程中，会实例化一个渲染的 Watcher 去监听 vm 上的数据变化重新渲染，这段逻辑发生在 mountComponent 函数执行的时候：
+
