@@ -303,3 +303,13 @@ Vue.prototype.$destroy = function () {
     }
   }
 ```
+
+beforeDestroy 钩子函数的执行时机是在 $destroy 函数执行最开始的地方，接着执行了一系列的销毁动作，包括从 parent 的 $children 中删掉自身，删除 watcher，当前渲染的 VNode 执行销毁钩子函数等，执行完毕后再调用 destroy 钩子函数。
+
+在 $destroy 的执行过程中，它又会执行 vm.__patch__(vm._vnode, null) 触发它子组件的销毁钩子函数，这样一层层的递归调用，所以 destroy 钩子
+
+## activated & deactivated
+
+activated 和 deactivated 钩子函数是专门为 keep-alive 组件定制的钩子，我们会在介绍 keep-alive 组件的时候详细介绍，这里先留个悬念。
+
+#
