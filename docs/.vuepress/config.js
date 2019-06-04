@@ -54,7 +54,11 @@ module.exports = {
         title: '组件化',
         collapsable: false,
         children: [
-         ['component/', 'Introduction']
+         ['component/', 'Introduction'],
+         'component/createComponent',
+         'component/patch',
+         'component/mergeConfiguration',
+         'component/lifeCycle'
         ]
        }
     ]
