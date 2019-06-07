@@ -195,4 +195,41 @@ Vue.component('async-example', AsyncComp)
 
 那么解下来，我们就根据这 3 种异步组件的情况，来分别去分析 resolveAsyncComponent 的逻辑。
 
-#
+## 普通函数异步组件
+
+针对普通函数的情况，前面几个 if 判断可以忽略，它们是为高级组件所用，对于 factory.contexts 的判断，是考虑到多个地方同时初始化一个异步组件，那么它的实际加载应该只有一次。接着进入实际加载逻辑，定义了 forceRender、resolve 和 reject 函数，注意 resolve 和 reject 函数用 once 函数做了一层包装，它的定义在 src/shared/util.js 中：
+
+```js
+once 函数做了一层包装，它的定义在 src/shared/util.js 中：
+
+/**
+ * Ensure a function is called only once.
+ */
+export function once (fn: Function): Function {
+  let called = false
+  return function () {
+    if (!called) {
+      called = true
+      fn.apply(this, arguments)
+    }
+  }
+}
+```
+
+once 逻辑非常简单，传入一个函数，并返回一个新函数，它非常巧妙地利用闭包和一个标志位保证了它包装的函数只会执行一次，也就是确保 resolve 和 reject 函数只执行一次。
+
+接下来执行 const res = factory(resolve, reject) 逻辑，这块儿就是执行我们组件的工厂函数，同时把 resolve 和 reject 函数作为参数传入，组件的工厂函数通常会先发送请求去加载我们的异步组件的 JS 文件，拿到组件定义的对象 res 后，执行 resolve(res) 逻辑，它会先执行 factory.resolved = ensureCtor(res, baseCtor)：
+
+```js
+function ensureCtor (comp: any, base) {
+  if (
+    comp.__esModule ||
+    (hasSymbol && comp[Symbol.toStringTag] === 'Module')
+  ) {
+    comp = comp.default
+  }
+  return isObject(comp)
+    ? base.extend(comp)
+    : comp
+}
+```
