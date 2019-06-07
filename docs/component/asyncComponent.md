@@ -341,4 +341,62 @@ return factory.loading
 
 那么这时候我们有几种情况，按逻辑的执行顺序，对不同的情况做判断。
 
+## 异步组件加载失败
+
+当异步组件加载失败，会执行 reject 函数：
+
+```js
+const reject = once(reason => {
+  process.env.NODE_ENV !== 'production' && warn(
+    `Failed to resolve async component: ${String(factory)}` +
+    (reason ? `\nReason: ${reason}` : '')
+  )
+  if (isDef(factory.errorComp)) {
+    factory.error = true
+    forceRender()
+  }
+})
+```
+
+这个时候会把 factory.error 设置为 true，同时执行 forceRender() 再次执行到 resolveAsyncComponent：
+
+```js
+if (isTrue(factory.error) && isDef(factory.errorComp)) {
+  return factory.errorComp
+}
+```
+
+那么这个时候就返回 factory.errorComp，直接渲染 error 组件。
+
+### 异步组件加载成功
+
+当异步组件加载成功，会执行 resolve 函数：
+
+```js
+const resolve = once((res: Object | Class<Component>) => {
+  factory.resolved = ensureCtor(res, baseCtor)
+  if (!sync) {
+    forceRender()
+  }
+})
+```
+
+首先把加载结果缓存到 factory.resolved 中，这个时候因为 sync 已经为 false，则执行 forceRender() 再次执行到 resolveAsyncComponent：
+```js
+if (isDef(factory.resolved)) {
+  return factory.resolved
+}
+```
+那么这个时候直接返回 factory.resolved，渲染成功加载的组件。
+
+### 异步组件加载中
+如果异步组件加载中并未返回，这时候会走到这个逻辑：
+
+```js
+if (isTrue(factory.loading) && isDef(factory.loadingComp)) {
+  return factory.loadingComp
+}
+```
+那么则会返回 factory.loadingComp，渲染 loading 组件。
+
 #
