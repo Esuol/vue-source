@@ -269,4 +269,59 @@ if (isUndef(factory.resolved)) {
 
 当组件异步加载成功后，执行 resolve，加载失败则执行 reject，这样就非常巧妙地实现了配合 webpack 2+ 的异步加载组件的方式（Promise）加载异步组件。
 
-#
+## 高级异步组件
+
+由于异步加载组件需要动态加载 JS，有一定网络延时，而且有加载失败的情况，所以通常我们在开发异步组件相关逻辑的时候需要设计 loading 组件和 error 组件，并在适当的时机渲染它们。Vue.js 2.3+ 支持了一种高级异步组件的方式，它通过一个简单的对象配置，帮你搞定 loading 组件和 error 组件的渲染时机，你完全不用关心细节，非常方便。接下来我们就从源码的角度来分析高级异步组件是怎么实现的。
+
+```js
+const AsyncComp = () => ({
+  // 需要加载的组件。应当是一个 Promise
+  component: import('./MyComp.vue'),
+  // 加载中应当渲染的组件
+  loading: LoadingComp,
+  // 出错时渲染的组件
+  error: ErrorComp,
+  // 渲染加载中组件前的等待时间。默认：200ms。
+  delay: 200,
+  // 最长等待时间。超出此时间则渲染错误组件。默认：Infinity
+  timeout: 3000
+})
+Vue.component('async-example', AsyncComp)
+
+```
+
+高级异步组件的初始化逻辑和普通异步组件一样，也是执行 resolveAsyncComponent，当执行完 res = factory(resolve, reject)，返回值就是定义的组件对象，显然满足 else if (isDef(res.component) && typeof res.component.then === 'function') 的逻辑，接着执行 res.component.then(resolve, reject)，当异步组件加载成功后，执行 resolve，失败执行 reject。
+
+因为异步组件加载是一个异步过程，它接着又同步执行了如下逻辑：
+
+```js
+if (isDef(res.error)) {
+  factory.errorComp = ensureCtor(res.error, baseCtor)
+}
+
+if (isDef(res.loading)) {
+  factory.loadingComp = ensureCtor(res.loading, baseCtor)
+  if (res.delay === 0) {
+    factory.loading = true
+  } else {
+    setTimeout(() => {
+      if (isUndef(factory.resolved) && isUndef(factory.error)) {
+        factory.loading = true
+        forceRender()
+      }
+    }, res.delay || 200)
+  }
+}
+
+if (isDef(res.timeout)) {
+  setTimeout(() => {
+    if (isUndef(factory.resolved)) {
+      reject(
+        process.env.NODE_ENV !== 'production'
+          ? `timeout (${res.timeout}ms)`
+          : null
+      )
+    }
+  }, res.timeout)
+}
+```
