@@ -325,3 +325,20 @@ if (isDef(res.timeout)) {
   }, res.timeout)
 }
 ```
+
+最后判断 res.timeout，如果配置了该项，则在 res.timout 时间后，如果组件没有成功加载，执行 reject。
+
+在 resolveAsyncComponent 的最后有一段逻辑：
+
+```js
+sync = false
+return factory.loading
+  ? factory.loadingComp
+  : factory.resolved
+```
+
+如果 delay 配置为 0，则这次直接渲染 loading 组件，否则则延时 delay 执行 forceRender，那么又会再一次执行到 resolveAsyncComponent。
+
+那么这时候我们有几种情况，按逻辑的执行顺序，对不同的情况做判断。
+
+#
