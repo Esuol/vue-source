@@ -399,4 +399,10 @@ if (isTrue(factory.loading) && isDef(factory.loadingComp)) {
 ```
 那么则会返回 factory.loadingComp，渲染 loading 组件。
 
+### 异步组件加载超时
+
+如果超时，则走到了 reject 逻辑，之后逻辑和加载失败一样，渲染 error 组件。
+
 #
+
+## 异步组件 patch
