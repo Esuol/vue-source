@@ -233,3 +233,40 @@ function ensureCtor (comp: any, base) {
     : comp
 }
 ```
+
+这个函数目的是为了保证能找到异步组件 JS 定义的组件对象，并且如果它是一个普通对象，则调用 Vue.extend 把它转换成一个组件的构造函数。
+
+resolve 逻辑最后判断了 sync，显然我们这个场景下 sync 为 false，那么就会执行 forceRender 函数，它会遍历 factory.contexts，拿到每一个调用异步组件的实例 vm, 执行 vm.$forceUpdate() 方法，它的定义在 src/core/instance/lifecycle.js 中：
+
+```js
+Vue.prototype.$forceUpdate = function () {
+  const vm: Component = this
+  if (vm._watcher) {
+    vm._watcher.update()
+  }
+}
+```
+
+$forceUpdate 的逻辑非常简单，就是调用渲染 watcher 的 update 方法，让渲染 watcher 对应的回调函数执行，也就是触发了组件的重新渲染。之所以这么做是因为 Vue 通常是数据驱动视图重新渲染，但是在整个异步组件加载过程中是没有数据发生变化的，所以通过执行 $forceUpdate 可以强制组件重新渲染一次。
+
+## Promise 异步组件
+
+```js
+Vue.component(
+  'async-webpack-example',
+  // 该 `import` 函数返回一个 `Promise` 对象。
+  () => import('./my-async-component')
+)
+```
+
+webpack 2+ 支持了异步加载的语法糖：() => import('./my-async-component')，当执行完 res = factory(resolve, reject)，返回的值就是 import('./my-async-component') 的返回值，它是一个 Promise 对象。接着进入 if 条件，又判断了 typeof res.then === 'function')，条件满足，执行：
+
+```js
+if (isUndef(factory.resolved)) {
+  res.then(resolve, reject)
+}
+```
+
+当组件异步加载成功后，执行 resolve，加载失败则执行 reject，这样就非常巧妙地实现了配合 webpack 2+ 的异步加载组件的方式（Promise）加载异步组件。
+
+#
