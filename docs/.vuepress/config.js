@@ -58,7 +58,8 @@ module.exports = {
          'component/createComponent',
          'component/patch',
          'component/mergeConfiguration',
-         'component/lifeCycle'
+         'component/lifeCycle',
+         'component/asyncComponent'
         ]
        }
     ]
