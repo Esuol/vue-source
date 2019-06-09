@@ -61,6 +61,13 @@ module.exports = {
          'component/lifeCycle',
          'component/asyncComponent'
         ]
+       },
+       {
+         title: '深入响应式原理',
+         collapsable: false,
+         children: [
+           ['deepResponse/', 'Introduction']
+         ]
        }
     ]
   }
